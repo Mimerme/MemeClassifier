@@ -10,6 +10,8 @@ import numpy as np
 from PIL import Image
 import os
 import pickle
+import scipy as sp
+import sys
 
 __TRAINING__ = True
 __TESTING__ = False
@@ -34,12 +36,11 @@ def mainBlock():
         classifier = loadClassifier()
         beginTesting()
 
-    pass
+    return
 
 def beginTraining():
     print "Starting Training..."
     loadTrainingImages()
-    print x
     classifier.fit(x, lables)
     endTraining()
     return
@@ -59,10 +60,12 @@ def loadTrainingImages():
                 #Pretty sure lables without onehotencoding works...
                 print("Loading " + meme_path + filename + " into the training set")
                 #Features for the images are their pixels on a single channel (geryscale)
-                x.append(parseImage(meme_path + filename))
+                x.append(parseImage(meme_path + filename).tolist())
+                #print x
                 #Append their lables to their corresponding features
                 #The lables are converted into their numerical form
                 lables.append(memes.index(meme))
+                #print x[0]
                 continue
     return
 
@@ -84,8 +87,8 @@ def loadTestingImages():
 
 #Parse the Image as GreyScale (something, something, better with single channel)
 def parseImage(image):
-    return np.asarray(Image.open(image).convert('L'))
-    pass
+    qq = sp.misc.imresize(Image.open(image).convert('L'), (300,300))
+    return np.array(qq).ravel()
 
 def saveClassifier(classifier):
     with open('maymay_classifier.pkl', 'wb') as fid:
@@ -102,10 +105,16 @@ def endTraining():
     saveClassifier(classifier)
     return
 
-#Executed when the user wises to know a certain iamge
-def predictImage(filepath):
+#Executed when the user wishes to know a certain iamge
+def predictImage():
+    file = sys.argv[1]
     classfier = loadClassifier()
-    print memes[classfier.predict(parseImage(filepath))]
+    i = parseImage(file)
+    print memes[classfier.predict(i)]
     pass
 
-mainBlock()
+
+if len(sys.argv) > 1:
+    predictImage()
+else:
+    mainBlock()
